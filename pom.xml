@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>me.moose</groupId>
+    <groupId>me.shrunkie</groupId>
     <artifactId>Websocket</artifactId>
     <version>2.0-SNAPSHOT</version>
 
@@ -50,7 +50,7 @@
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <manifestEntries>
-                                        <Main-Class>me.moose.websocket.Start</Main-Class>
+                                        <Main-Class>me.shrunkie.websocket.Start</Main-Class>
                                         <Build-Number>2.0</Build-Number>
                                     </manifestEntries>
                                 </transformer>
@@ -108,6 +108,11 @@
             <groupId>org.mongodb</groupId>
             <artifactId>mongo-java-driver</artifactId>
             <version>LATEST</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.10</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>

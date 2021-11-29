@@ -10,6 +10,7 @@ import me.moose.websocket.server.player.impl.friend.objects.EnumFriendStatus;
 import me.moose.websocket.server.server.nethandler.ByteBufWrapper;
 import me.moose.websocket.server.server.nethandler.CBPacket;
 import me.moose.websocket.server.server.nethandler.ServerHandler;
+import me.moose.websocket.server.server.nethandler.impl.packetids.WSPacketCosmeticGive;
 import org.java_websocket.WebSocket;
 
 import java.io.IOException;
@@ -42,7 +43,7 @@ public class CBPacketServerUpdate extends CBPacket {
     @Override
     public void process(WebSocket conn, ServerHandler handler) throws IOException {
         Player player = PlayerManager.getPlayerMap().get(conn.getAttachment());
-
+        handler.sendPacket(conn, new WSPacketCosmeticGive());
         if (this.serverAddress.equalsIgnoreCase(player.getServer())) return;
 
         if (!this.serverAddress.equalsIgnoreCase("")) {

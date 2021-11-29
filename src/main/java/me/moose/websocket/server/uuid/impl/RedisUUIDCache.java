@@ -19,7 +19,7 @@ public class RedisUUIDCache implements UUIDCache {
     private static final Map<String, UUID> nameToUUID = new ConcurrentHashMap<>();
 
     public RedisUUIDCache() throws URISyntaxException {
-        URI redisURI = new URI("redis://redistogo:dc530ba03b09dd55a89f05b543cc539e@pearlfish.redistogo.com:9250/");
+        URI redisURI = new URI("redis://a:ySyox6iOrtElxXxOv3UHhOlfDB5G2JjE@redis-16920.c228.us-central1-1.gce.cloud.redislabs.com:16920");
         WebServer.getInstance().jedisPool = new JedisPool(new JedisPoolConfig(),
                 redisURI.getHost(),
                 redisURI.getPort(),

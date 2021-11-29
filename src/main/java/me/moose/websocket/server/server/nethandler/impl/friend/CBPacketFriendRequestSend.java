@@ -71,5 +71,6 @@ public class CBPacketFriendRequestSend extends CBPacket {
 
         if (!targetPlayer.isOnline())
             WebServer.getInstance().getPlayerManager().removePlayer(targetPlayer.getPlayerId(), false);
+		
     }
 }

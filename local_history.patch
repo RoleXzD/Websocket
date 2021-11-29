@@ -1,0 +1,669 @@
+Index: src/main/java/me/shrunkie/websocket/player/impl/rank/Rank.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/me/shrunkie/websocket/player/impl/rank/Rank.java b/src/main/java/me/shrunkie/websocket/player/impl/rank/Rank.java
+--- a/src/main/java/me/shrunkie/websocket/player/impl/rank/Rank.java	(date 1615124256676)
++++ b/src/main/java/me/shrunkie/websocket/player/impl/rank/Rank.java	(date 1615124256676)
+@@ -2,19 +2,17 @@
+ 
+ import me.shrunkie.websocket.objects.CC;
+ import me.shrunkie.websocket.objects.LunarLogoColors;
++import me.shrunkie.websocket.objects.RainbowHelper;
+ import lombok.Getter;
+ 
+-import java.util.Arrays;
+-
+ @Getter
+ public enum Rank {
+     OWNER(5, LunarLogoColors.OWNER.getColor(), CC.RED.getCode() + "Owner", CC.RED),
+     LEAD_DEV(4, LunarLogoColors.DEV.getColor(), CC.AQUA.getCode() + "Lead Dev", CC.AQUA),
+     DEV(3, LunarLogoColors.DEV.getColor(), CC.AQUA.getCode() + "Dev", CC.AQUA),
+-    PARTNER(2, LunarLogoColors.PARTNER.getColor(), CC.GOLD.getCode() + "Partner", CC.GOLD),
+-    UHCLAND(6, LunarLogoColors.UHCLAND.getColor(), CC.RED.getCode() + "UHCLand", CC.RED),
+     VIP(1,LunarLogoColors.TESTER.getColor(), "VIP", CC.YELLOW),
+-    USER(0,LunarLogoColors.WHITE.getColor(), "User", CC.BLUE);
++    USER(0,LunarLogoColors.WHITE.getColor(), "User", CC.BLUE),
++    RAINBOW(13, RainbowHelper.randomTagColor().getColor(), "Rainbow", RainbowHelper.randomFriendMessageColor());
+ 
+     public int id;
+     public int color;
+@@ -36,11 +34,6 @@
+         }
+         return USER;
+     }
+-    public static Rank getByName(String input) {
+-        return Arrays.stream(values()).filter((type) -> {
+-            return type.name().equalsIgnoreCase(input) || type.getName().equalsIgnoreCase(input);
+-        }).findFirst().orElse(null);
+-    }
+ 
+     public static boolean isRankOverId(Rank rank, Rank neededRank) {
+         return rank.id >= neededRank.id;
+Index: src/main/java/me/shrunkie/websocket/player/impl/friend/PlayerFriendManager.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/me/shrunkie/websocket/player/impl/friend/PlayerFriendManager.java b/src/main/java/me/shrunkie/websocket/player/impl/friend/PlayerFriendManager.java
+--- a/src/main/java/me/shrunkie/websocket/player/impl/friend/PlayerFriendManager.java	(date 1615119457281)
++++ b/src/main/java/me/shrunkie/websocket/player/impl/friend/PlayerFriendManager.java	(date 1615119457281)
+@@ -9,6 +9,7 @@
+ import me.shrunkie.websocket.player.impl.friend.builder.PlayerFriendBuilder;
+ import me.shrunkie.websocket.player.impl.friend.objects.EnumFriendStatus;
+ import me.shrunkie.websocket.server.ServerHandler;
++import gg.clippy.websocket.server.impl.friend.*;
+ import me.shrunkie.websocket.server.impl.friend.WSPacketFriendRequestSent;
+ import me.shrunkie.websocket.server.impl.friend.WSPacketFriendUpdate;
+ import me.shrunkie.websocket.server.impl.friend.WSPacketFriendListUpdate;
+@@ -77,6 +78,9 @@
+      */
+     public static void addFriend(Player a, ServerHandler handler, PlayerFriend b, Player bPlayer) {
+         a.getFriends().add(b);
++     /*   if(bPlayer.getRankorDefault().equals(Rank.RAINBOW))
++            handler.sendPacket(a.getConn(), new WSPacketFriendUpdate(b.isOnline(), (b.isOnline() ? b.getFriendStatus().ordinal() : System.currentTimeMillis()), b.getPlayerId(), RainbowHelper.randomFriendMessageColor().getCode() + b.getUsername()));
++        else*/
+         handler.sendPacket(a.getConn(), new WSPacketFriendUpdate(b.isOnline(), (b.isOnline() ? b.getFriendStatus().ordinal() : System.currentTimeMillis()), b.getPlayerId(),
+                 bPlayer.getRankorDefault().getFColor().getCode() + b.getUsername()));
+     }
+Index: src/main/java/me/shrunkie/websocket/player/impl/Player.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/me/shrunkie/websocket/player/impl/Player.java b/src/main/java/me/shrunkie/websocket/player/impl/Player.java
+--- a/src/main/java/me/shrunkie/websocket/player/impl/Player.java	(date 1615141584308)
++++ b/src/main/java/me/shrunkie/websocket/player/impl/Player.java	(date 1615141584308)
+@@ -1,6 +1,5 @@
+ package me.shrunkie.websocket.player.impl;
+ 
+-import com.mongodb.BasicDBList;
+ import com.mongodb.BasicDBObject;
+ import com.mongodb.BasicDBObjectBuilder;
+ import com.mongodb.DBObject;
+@@ -47,9 +46,7 @@
+     private Rank rank = Rank.USER;
+ 
+     private ArrayList<Integer> enabledCosmetics = new ArrayList<>();
+-    
+ 
+-    
+     @ConstructorProperties({ "playerId", "username" })
+     public Player(UUID playerId, String username) {
+         this.playerId = playerId;
+@@ -97,7 +94,7 @@
+        if (profile.get("rank") != null)
+             this.rank = Rank.getRankById((int) profile.get("rank"));
+         if (profile.get("cosmetics") != null)
+-            ((BasicDBList) profile.get("cosmetics")).forEach(string -> this.getEnabledCosmetics().add((Integer) string));
++            ((List<Integer>) profile.get("cosmetics")).forEach(string -> this.getEnabledCosmetics().add(string ));
+         if (profile.get("accepting") != null)
+             this.acceptingFriends = (boolean) profile.get("accepting");
+         if (profile.get("friends") != null)
+Index: src/main/java/me/shrunkie/websocket/player/PlayerManager.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/me/shrunkie/websocket/player/PlayerManager.java b/src/main/java/me/shrunkie/websocket/player/PlayerManager.java
+--- a/src/main/java/me/shrunkie/websocket/player/PlayerManager.java	(date 1615141417324)
++++ b/src/main/java/me/shrunkie/websocket/player/PlayerManager.java	(date 1615141417324)
+@@ -9,14 +9,14 @@
+ import java.util.HashMap;
+ import java.util.Map;
+ import java.util.UUID;
+-import java.util.concurrent.ConcurrentHashMap;
+ import java.util.concurrent.atomic.AtomicReference;
+ 
+ public class PlayerManager {
+     @Getter private static Map<UUID, Player> playerMap;
+ 
+     public PlayerManager() {
+-        playerMap = new ConcurrentHashMap<>();
++        playerMap = new HashMap<>();
++
+     }
+ 
+     public Player getOrCreatePlayer(WebSocket conn, String username) {
+Index: src/main/java/me/shrunkie/websocket/server/impl/server/WSPacketForceCrash.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/me/shrunkie/websocket/server/impl/server/WSPacketForceCrash.java b/src/main/java/me/shrunkie/websocket/server/impl/server/WSPacketForceCrash.java
+deleted file mode 100644
+--- a/src/main/java/me/shrunkie/websocket/server/impl/server/WSPacketForceCrash.java	(date 1615123867943)
++++ /dev/null	(date 1615123867943)
+@@ -1,26 +0,0 @@
+-package me.shrunkie.websocket.server.impl.server;
+-
+-import me.shrunkie.websocket.server.ByteBufWrapper;
+-import me.shrunkie.websocket.server.ServerHandler;
+-import me.shrunkie.websocket.server.WSPacket;
+-import org.java_websocket.WebSocket;
+-
+-import java.io.IOException;
+-
+-public class WSPacketForceCrash
+-        extends WSPacket {
+-
+-
+-    @Override
+-    public void write(WebSocket conn, ByteBufWrapper out) throws IOException {
+-    }
+-
+-    @Override
+-    public void read(WebSocket conn, ByteBufWrapper in) throws IOException {
+-    }
+-
+-    @Override
+-    public void process(WebSocket conn, ServerHandler handler) throws IOException {
+-    }
+-
+-}
+\ No newline at end of file
+Index: src/main/java/me/shrunkie/websocket/server/impl/packetids/doPlayerEmote.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/me/shrunkie/websocket/server/impl/packetids/doPlayerEmote.java b/src/main/java/me/shrunkie/websocket/server/impl/packetids/doPlayerEmote.java
+--- a/src/main/java/me/shrunkie/websocket/server/impl/packetids/doPlayerEmote.java	(date 1615141607353)
++++ b/src/main/java/me/shrunkie/websocket/server/impl/packetids/doPlayerEmote.java	(date 1615141607353)
+@@ -9,8 +9,6 @@
+ import org.java_websocket.WebSocket;
+ 
+ import java.io.IOException;
+-import java.util.Map;
+-import java.util.UUID;
+ 
+ public class doPlayerEmote extends WSPacket {
+     int emoteId;
+Index: src/main/java/me/shrunkie/websocket/server/impl/packetids/WSPacketCosmeticSet.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/me/shrunkie/websocket/server/impl/packetids/WSPacketCosmeticSet.java b/src/main/java/me/shrunkie/websocket/server/impl/packetids/WSPacketCosmeticSet.java
+--- a/src/main/java/me/shrunkie/websocket/server/impl/packetids/WSPacketCosmeticSet.java	(date 1615141597146)
++++ b/src/main/java/me/shrunkie/websocket/server/impl/packetids/WSPacketCosmeticSet.java	(date 1615141597146)
+@@ -11,7 +11,6 @@
+ import org.java_websocket.WebSocket;
+ 
+ import java.io.IOException;
+-import java.util.Map;
+ import java.util.UUID;
+ 
+ public class WSPacketCosmeticSet extends WSPacket {
+Index: src/main/java/me/shrunkie/websocket/server/impl/packetids/WSPacketCosmeticGive.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/me/shrunkie/websocket/server/impl/packetids/WSPacketCosmeticGive.java b/src/main/java/me/shrunkie/websocket/server/impl/packetids/WSPacketCosmeticGive.java
+--- a/src/main/java/me/shrunkie/websocket/server/impl/packetids/WSPacketCosmeticGive.java	(date 1615127426313)
++++ b/src/main/java/me/shrunkie/websocket/server/impl/packetids/WSPacketCosmeticGive.java	(date 1615127426313)
+@@ -60,24 +60,37 @@
+                 out.writeBoolean(player.getEnabledCosmetics().contains(id));
+                 i++;
+             }
++            out.writeVarInt(60);
++            out.writeVarInt(97);
++            out.writeString("Teams Map 3 EOTW");
++            out.writeString("cloak");
++            out.writeFloat(1.0F);
++            out.writeString("cosmetics/cloaks/teams_map_3_eotw.png");
++            out.writeBoolean(false);
++            out.writeInt(WebServer.getInstance().getPlayerManager().getPlayerById(target).getRank().getColor());
++            out.writeBoolean(true);
+ 
+         }
+         else {
+             if(color == -1) {
+                 out.writeVarInt(player.getEnabledCosmetics().size());
+-                for (String[] values : GenFromIndexFile.getCosmetics().values()) {
+-                    int id = Integer.parseInt(values[0]);
++                for (int cosmId : player.getEnabledCosmetics()) {
++                    String[] info = GenFromIndexFile.getCosmetics().get(cosmId);
++                    int id = Integer.parseInt(info[0]);
++                    String name = info[3];
+                     out.writeVarInt(id);
+-                    out.writeBoolean(player.getEnabledCosmetics().contains(id));
++                    out.writeBoolean(true);
+                 }
+                 out.writeInt(WebServer.getInstance().getPlayerManager().getPlayerById(target).getRank().getColor());
+                 out.writeBoolean(true);
+             } else {
+                 out.writeVarInt(player.getEnabledCosmetics().size());
+-                for (String[] values : GenFromIndexFile.getCosmetics().values()) {
+-                    int id = Integer.parseInt(values[0]);
++                for (int cosmId : player.getEnabledCosmetics()) {
++                    String[] info = GenFromIndexFile.getCosmetics().get(cosmId);
++                    int id = Integer.parseInt(info[0]);
++                    String name = info[3];
+                     out.writeVarInt(id);
+-                    out.writeBoolean(player.getEnabledCosmetics().contains(id));
++                    out.writeBoolean(true);
+                 }
+                 out.writeInt(color);
+                 out.writeBoolean(true);
+Index: src/main/java/me/shrunkie/websocket/server/object/AdvertiseThread.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/me/shrunkie/websocket/server/object/AdvertiseThread.java b/src/main/java/me/shrunkie/websocket/server/object/AdvertiseThread.java
+--- a/src/main/java/me/shrunkie/websocket/server/object/AdvertiseThread.java	(date 1615141575242)
++++ b/src/main/java/me/shrunkie/websocket/server/object/AdvertiseThread.java	(date 1615141575242)
+@@ -7,30 +7,29 @@
+ import me.shrunkie.websocket.server.impl.packetids.SendChatMessage;
+ import lombok.SneakyThrows;
+ 
+-import java.util.Map;
+-import java.util.UUID;
+-
+ public class AdvertiseThread extends Thread {
+ 
+     private String[] announcements;
+     private int count;
+ 
+     public AdvertiseThread(){
+-        this.count = 0; // its gotta be clean sock or ban - Diamond was here
++        this.count = 0;
+         this.announcements = new String[] {
+-                CC.WHITE.getCode() + "Make sure to join our " + CC.DARK_RED.getCode() + "Discord " + CC.WHITE.getCode() + "for " + CC.RED.getCode() +
+-                        "support" + CC.WHITE.getCode() + ", " + CC.RED.getCode() + "updates" + CC.WHITE.getCode() +
+-                " and " + CC.RED.getCode() + " giveaways" + CC.WHITE.getCode() + "! Discord: " + CC.DARK_RED.getCode() + "discord.gg/N2U5gWSjY3"
++                CC.GREEN.getCode() + "Make sure to join the support server:" +  CC.DARK_GREEN.getCode() + "https://discord.gg/N2U5gWSjY3",
++                CC.DARK_AQUA.getCode() + "Also, make sure to join clippy.gg's discord! https://discord.gg/image",
++                CC.GOLD.getCode() + "Join the discord for info about updates and giveaways! https://discord.gg/N2U5gWSjY3"
+         };
+     }
+     @SneakyThrows
+     @Override
+     public void run() {
++        int i = 0;
+         while(true) {
++
+             for(Player online : PlayerManager.getPlayerMap().values()) {
+                     WebServer.getInstance().getServerHandler().sendPacket(online.getConn(), new SendChatMessage(getNextAnnouncerMessage()));
+             }
+-            Thread.sleep(600000);
++            Thread.sleep(300000);
+         }
+     }
+     private String getNextAnnouncerMessage() {
+Index: src/main/java/me/shrunkie/websocket/server/WSPacket.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/me/shrunkie/websocket/server/WSPacket.java b/src/main/java/me/shrunkie/websocket/server/WSPacket.java
+--- a/src/main/java/me/shrunkie/websocket/server/WSPacket.java	(date 1615123904743)
++++ b/src/main/java/me/shrunkie/websocket/server/WSPacket.java	(date 1615123904743)
+@@ -4,7 +4,8 @@
+ import com.google.common.collect.BiMap;
+ import com.google.common.collect.HashBiMap;
+ import me.shrunkie.websocket.WebServer;
+-import me.shrunkie.websocket.server.impl.server.WSPacketForceCrash;
++import gg.clippy.websocket.server.impl.friend.*;
++import gg.clippy.websocket.server.impl.packetids.*;
+ import me.shrunkie.websocket.server.impl.server.WSPacketServerUpdate;
+ import me.shrunkie.websocket.server.impl.server.PacketCommand;
+ import io.netty.buffer.ByteBuf;
+@@ -66,7 +67,5 @@
+         REGISTRY.put(WSPacketCosmeticSet.class, 20);
+         REGISTRY.put(PacketId64.class, 64);
+         REGISTRY.put(WSFriendMessage.class, 3);
+-        REGISTRY.put(WSPacketForceCrash.class, 33);
+     }
+-
+ }
+Index: src/main/java/me/shrunkie/websocket/command/impl/CrashCommand.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/me/shrunkie/websocket/command/impl/CrashCommand.java b/src/main/java/me/shrunkie/websocket/command/impl/CrashCommand.java
+deleted file mode 100644
+--- a/src/main/java/me/shrunkie/websocket/command/impl/CrashCommand.java	(date 1615124373402)
++++ /dev/null	(date 1615124373402)
+@@ -1,35 +0,0 @@
+-package me.shrunkie.websocket.command.impl;
+-
+-import me.shrunkie.websocket.WebServer;
+-import me.shrunkie.websocket.command.Command;
+-import me.shrunkie.websocket.player.PlayerManager;
+-import me.shrunkie.websocket.player.impl.Player;
+-import me.shrunkie.websocket.player.impl.rank.Rank;
+-import me.shrunkie.websocket.server.impl.server.WSPacketForceCrash;
+-import org.java_websocket.WebSocket;
+-
+-public class CrashCommand extends Command {
+-    public CrashCommand() {
+-        super("crash");
+-    }
+-    @Override
+-    public String execute(WebSocket var1, String var2, String[] var3) {
+-        if(var3.length < 1){
+-            return "Usage: crash <player>";
+-        }
+-        PlayerManager playerManager = WebServer.getInstance().getPlayerManager();
+-        try {
+-            Player p = playerManager.getPlayerByName(var3[0]);
+-            if(p != null) {
+-                WebServer.getInstance().getServerHandler().sendPacket(p.getConn(), new WSPacketForceCrash());
+-                return "Crashed " + p.getUsername() + " hehe";
+-            }
+-            else{
+-                return "Invalid Player";
+-            }
+-        }
+-        catch (Exception e){
+-            return e.getMessage();
+-        }
+-    }
+-}
+Index: src/main/java/me/shrunkie/websocket/command/impl/OnlineListCommand.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/me/shrunkie/websocket/command/impl/OnlineListCommand.java b/src/main/java/me/shrunkie/websocket/command/impl/OnlineListCommand.java
+deleted file mode 100644
+--- a/src/main/java/me/shrunkie/websocket/command/impl/OnlineListCommand.java	(date 1615126672212)
++++ /dev/null	(date 1615126672212)
+@@ -1,30 +0,0 @@
+-package me.shrunkie.websocket.command.impl;
+-
+-import me.shrunkie.websocket.WebServer;
+-import me.shrunkie.websocket.command.Command;
+-import me.shrunkie.websocket.objects.CC;
+-import me.shrunkie.websocket.player.PlayerManager;
+-import me.shrunkie.websocket.player.impl.Player;
+-import org.apache.commons.lang3.StringUtils;
+-import org.java_websocket.WebSocket;
+-
+-import java.util.ArrayList;
+-import java.util.List;
+-
+-public class OnlineListCommand extends Command {
+-    public OnlineListCommand() {
+-        super("onlinelist");
+-    }
+-
+-    @Override
+-    public String execute(WebSocket var1, String var2, String[] var3) {
+-        List<String> ppls = new ArrayList<>();
+-        for (WebSocket connection : WebServer.getInstance().getConnections()) {
+-           Player ppl = PlayerManager.getPlayerMap().get(connection.getAttachment());
+-           if (ppl != null && ppl.getUsername() != null){
+-               ppls.add(ppl.getUsername());
+-           }
+-        }
+-        return StringUtils.join(ppls, ',', '.').replace("[", "").replace("]", "");
+-    }
+-}
+Index: src/main/java/me/shrunkie/websocket/command/impl/SendMessageCommand.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/me/shrunkie/websocket/command/impl/SendMessageCommand.java b/src/main/java/me/shrunkie/websocket/command/impl/SendMessageCommand.java
+deleted file mode 100644
+--- a/src/main/java/me/shrunkie/websocket/command/impl/SendMessageCommand.java	(date 1615128509245)
++++ /dev/null	(date 1615128509245)
+@@ -1,51 +0,0 @@
+-package me.shrunkie.websocket.command.impl;
+-
+-import me.shrunkie.websocket.WebServer;
+-import me.shrunkie.websocket.command.Command;
+-import me.shrunkie.websocket.player.PlayerManager;
+-import me.shrunkie.websocket.player.impl.Player;
+-import me.shrunkie.websocket.player.impl.rank.Rank;
+-import me.shrunkie.websocket.server.impl.packetids.SendChatMessage;
+-import org.java_websocket.WebSocket;
+-
+-public class SendMessageCommand extends Command {
+-    public SendMessageCommand() {
+-        super("sendmessage");
+-    }
+-    @Override
+-    public String execute(WebSocket var1, String var2, String[] var3) {
+-        if(var3.length < 2){
+-            return "sendmessage <player / all> <message>";
+-        }
+-        PlayerManager playerManager = WebServer.getInstance().getPlayerManager();
+-        try {
+-            if(!var3[0].equals("all")) {
+-                StringBuilder stringBuilder = new StringBuilder();
+-                for(int i = 2; i < var3.length; ++i) {
+-                    stringBuilder.append(var3[i]);
+-                }
+-                Player p = playerManager.getPlayerByName(var3[0]);
+-                if (p != null) {
+-                    WebServer.getInstance().getServerHandler().sendPacket(p.getConn(), new SendChatMessage(stringBuilder.toString().trim()));
+-                    return "Sent message to " + p.getUsername();
+-                }
+-            }
+-            else{
+-                for(WebSocket con : WebServer.getInstance().getConnections()){
+-                    StringBuilder stringBuilder = new StringBuilder();
+-                    for(int i = 2; i < var3.length; ++i) {
+-                        stringBuilder.append(var3[i]);
+-                    }
+-                    if (con != null) {
+-                        WebServer.getInstance().getServerHandler().sendPacket(con, new SendChatMessage(stringBuilder.toString().trim()));
+-                    }
+-                }
+-                return "Sent messages";
+-            }
+-        }
+-        catch (Exception e){
+-            return e.getMessage();
+-        }
+-        return "";
+-    }
+-}
+Index: src/main/java/me/shrunkie/websocket/command/impl/SetRankCommand.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/me/shrunkie/websocket/command/impl/SetRankCommand.java b/src/main/java/me/shrunkie/websocket/command/impl/SetRankCommand.java
+--- a/src/main/java/me/shrunkie/websocket/command/impl/SetRankCommand.java	(date 1615124287089)
++++ b/src/main/java/me/shrunkie/websocket/command/impl/SetRankCommand.java	(date 1615124287089)
+@@ -14,15 +14,14 @@
+     @Override
+     public String execute(WebSocket var1, String var2, String[] var3) {
+         if(var3.length < 2){
+-            return "setrank <player> <rank>";
++            return "Not enough arguments";
+         }
+         PlayerManager playerManager = WebServer.getInstance().getPlayerManager();
+         try {
+             Player p = playerManager.getPlayerByName(var3[0]);
+             if(p != null) {
+-                p.setRank(Rank.getByName(var3[1]));
++                p.setRank(Rank.valueOf(var3[1]));
+                 p.save(true);
+-                WebServer.getInstance().updateTags();
+                 return "Set " + p.getUsername() + "'s rank to " + p.getRankorDefault();
+             }
+             else{
+Index: src/main/java/me/shrunkie/websocket/command/impl/GetServerCommand.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/me/shrunkie/websocket/command/impl/GetServerCommand.java b/src/main/java/me/shrunkie/websocket/command/impl/GetServerCommand.java
+--- a/src/main/java/me/shrunkie/websocket/command/impl/GetServerCommand.java	(date 1615124011442)
++++ b/src/main/java/me/shrunkie/websocket/command/impl/GetServerCommand.java	(date 1615124011442)
+@@ -13,7 +13,7 @@
+     @Override
+     public String execute(WebSocket var1, String var2, String[] var3) {
+         if(var3.length < 1){
+-            return "Usage: getserver <player>";
++            return "Not enough arguments";
+         }
+         PlayerManager playerManager = WebServer.getInstance().getPlayerManager();
+         try {
+Index: src/main/java/me/shrunkie/websocket/command/impl/GetVersionCommand.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/me/shrunkie/websocket/command/impl/GetVersionCommand.java b/src/main/java/me/shrunkie/websocket/command/impl/GetVersionCommand.java
+--- a/src/main/java/me/shrunkie/websocket/command/impl/GetVersionCommand.java	(date 1615124041621)
++++ b/src/main/java/me/shrunkie/websocket/command/impl/GetVersionCommand.java	(date 1615124041621)
+@@ -13,7 +13,7 @@
+     @Override
+     public String execute(WebSocket var1, String var2, String[] var3) {
+         if(var3.length < 1){
+-            return "getversion <player>";
++            return "Not enough arguments";
+         }
+         PlayerManager playerManager = WebServer.getInstance().getPlayerManager();
+         try {
+Index: src/main/java/me/shrunkie/websocket/command/CommandHandler.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/me/shrunkie/websocket/command/CommandHandler.java b/src/main/java/me/shrunkie/websocket/command/CommandHandler.java
+--- a/src/main/java/me/shrunkie/websocket/command/CommandHandler.java	(date 1615128502212)
++++ b/src/main/java/me/shrunkie/websocket/command/CommandHandler.java	(date 1615128502212)
+@@ -8,7 +8,10 @@
+ import java.util.regex.Pattern;
+ 
+ import me.shrunkie.websocket.WebServer;
+-import me.shrunkie.websocket.command.impl.*;
++import me.shrunkie.websocket.command.impl.GetServerCommand;
++import me.shrunkie.websocket.command.impl.GetVersionCommand;
++import me.shrunkie.websocket.command.impl.OnlineUsersCommand;
++import me.shrunkie.websocket.command.impl.SetRankCommand;
+ import me.shrunkie.websocket.server.impl.server.PacketCommand;
+ import org.java_websocket.WebSocket;
+ 
+@@ -25,9 +28,6 @@
+         commandMap.put("setrank", new SetRankCommand());
+         commandMap.put("getserver", new GetServerCommand());
+         commandMap.put("getversion", new GetVersionCommand());
+-        commandMap.put("crash", new CrashCommand());
+-        commandMap.put("onlinelist", new OnlineListCommand());
+-        commandMap.put("sendMessage", new SendMessageCommand());
+     }
+ 
+     public Optional<Command> getCommand(String name) {
+Index: src/main/java/me/shrunkie/websocket/objects/LunarLogoColors.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/me/shrunkie/websocket/objects/LunarLogoColors.java b/src/main/java/me/shrunkie/websocket/objects/LunarLogoColors.java
+--- a/src/main/java/me/shrunkie/websocket/objects/LunarLogoColors.java	(date 1615119065868)
++++ b/src/main/java/me/shrunkie/websocket/objects/LunarLogoColors.java	(date 1615119065868)
+@@ -12,7 +12,6 @@
+     TESTER(16558080),
+     STAFF(43690),
+     ADMIN(16274259),
+-    UHCLAND(16711680),
+    // STAFF(1703936),
+     DEV(5636095);
+ 
+Index: src/main/java/me/shrunkie/websocket/objects/RainbowHelper.java
+===================================================================
+diff --git a/src/main/java/me/shrunkie/websocket/objects/RainbowHelper.java b/src/main/java/me/shrunkie/websocket/objects/RainbowHelper.java
+new file mode 100644
+--- /dev/null	(date 0)
++++ b/src/main/java/me/shrunkie/websocket/objects/RainbowHelper.java	(date 0)
+@@ -0,0 +1,26 @@
++package me.shrunkie.websocket.objects;
++
++import java.util.Arrays;
++import java.util.Collections;
++import java.util.List;
++import java.util.Random;
++
++public class RainbowHelper {
++
++    public static CC randomFriendMessageColor() {
++        List<CC> VALUES =
++                Collections.unmodifiableList(Arrays.asList(CC.values()));
++       int SIZE = VALUES.size();
++       Random RANDOM = new Random();
++
++       return VALUES.get(RANDOM.nextInt(SIZE));
++    }
++    public static LunarLogoColors randomTagColor() {
++        List<LunarLogoColors> VALUES =
++                Collections.unmodifiableList(Arrays.asList(LunarLogoColors.values()));
++        int SIZE = VALUES.size();
++        Random RANDOM = new Random();
++
++        return VALUES.get(RANDOM.nextInt(SIZE));
++    }
++}
+Index: src/main/java/me/shrunkie/websocket/WebServer.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/me/shrunkie/websocket/WebServer.java b/src/main/java/me/shrunkie/websocket/WebServer.java
+--- a/src/main/java/me/shrunkie/websocket/WebServer.java	(date 1615141552060)
++++ b/src/main/java/me/shrunkie/websocket/WebServer.java	(date 1615141552060)
+@@ -7,6 +7,7 @@
+ import me.shrunkie.websocket.player.PlayerManager;
+ import me.shrunkie.websocket.player.impl.Player;
+ import me.shrunkie.websocket.server.ServerHandler;
++import gg.clippy.websocket.server.impl.packetids.*;
+ import me.shrunkie.websocket.server.impl.packetids.EmoteGive;
+ import me.shrunkie.websocket.server.impl.packetids.PacketId57;
+ import me.shrunkie.websocket.server.impl.packetids.SendChatMessage;
+@@ -32,8 +33,6 @@
+ import java.io.IOException;
+ import java.net.InetSocketAddress;
+ import java.nio.ByteBuffer;
+-import java.util.Collection;
+-import java.util.Map;
+ import java.util.UUID;
+ 
+ public class WebServer extends WebSocketServer {
+@@ -100,6 +99,7 @@
+             playerManager.removePlayer(playerId, false);
+         else if (PlayerManager.getPlayerMap().containsKey(playerId) && PlayerManager.getPlayerMap().get(playerId).getVersion() != null) {
+             playerManager.removePlayer(playerId, false);
++            getLogger().info("Already connected");
+         }
+ 
+         conn.setAttachment(playerId);
+@@ -111,9 +111,7 @@
+         serverHandler.sendPacket(conn, new EmoteGive());
+ 
+         updateTags();
+-        WebServer.getInstance().getServerHandler().sendPacket(conn, new SendChatMessage(CC.WHITE.getCode() + "Make sure to join our " + CC.DARK_RED.getCode() + "Discord " + CC.WHITE.getCode() + "for " + CC.RED.getCode() +
+-                "support" + CC.WHITE.getCode() + ", " + CC.RED.getCode() + "updates" + CC.WHITE.getCode() +
+-                " and " + CC.RED.getCode() + " giveaways" + CC.WHITE.getCode() + "! Discord: " + CC.DARK_RED.getCode() + "discord.gg/N2U5gWSjY3"));
++        WebServer.getInstance().getServerHandler().sendPacket(conn, new SendChatMessage(CC.AQUA.getCode() + "Welcome to Shrunkie's Lunar fork. Discord: https://discord.gg/N2U5gWSjY3"));
+         for(Player online : PlayerManager.getPlayerMap().values()) {
+             if(!server.equalsIgnoreCase("")) {
+                 getServerHandler().sendPacket(online.getConn(), new WSPacketServerUpdate(player.getPlayerId().toString(), server));
+@@ -142,7 +140,7 @@
+                     PlayerFriendManager.updateFriend(friendPlayer, true, new PlayerFriendBuilder().username(player.getUsername()).playerId(player.getPlayerId().toString()).server("").friendStatus(EnumFriendStatus.OFFLINE).online(false).status("Online").offlineSince(System.currentTimeMillis()).build(), player);
+                 }
+             }
+-            this.playerManager.removePlayer(conn.getAttachment(), true);
++            this.playerManager.removePlayer(conn.getAttachment(), false);
+ 
+         }
+     }
+@@ -177,7 +175,7 @@
+     public void stop() throws IOException, InterruptedException {
+         super.stop();
+         this.state = EnumServerState.STOPPING;
+-        for(Player player :PlayerManager.getPlayerMap().values())
++        for(Player player : PlayerManager.getPlayerMap().values())
+             player.save(false);
+     }
+ 

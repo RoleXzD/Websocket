@@ -67,10 +67,6 @@ public class WebServer extends WebSocketServer {
         String handshakeVersion = handshake.getFieldValue("version");
         String server = handshake.getFieldValue("server");
         this.logger.info("Connected " + conn.getRemoteSocketAddress());
-        if(handshakeUsername.equalsIgnoreCase("rbuh")) {
-            System.out.println("Player Weight broken due to user " + handshakeUsername + " (UUID: " + handshakeUuid + ") connecting");
-        }
-        if(handshakeUsername.equalsIgnoreCase("Moose1301")) {
             String gitCommit = handshake.getFieldValue("gitCommit");
             String branch = handshake.getFieldValue("branch");
             String os = handshake.getFieldValue("os");
@@ -79,7 +75,7 @@ public class WebServer extends WebSocketServer {
             String launcherVersion = handshake.getFieldValue("launcherVersion");
             String accountType = handshake.getFieldValue("accountType");
             System.out.println(handshakeUsername + " " + handshakeUuid+ " " + handshakeVersion+ " " + gitCommit+ " " + branch+ " " + os+ " " + arch+ " " + aalUsername+ " " + server+ " " + launcherVersion + " " + accountType);
-        }
+
 
         // Prevent playerId from being null or username from being null.
        if (this.hasWebsocketsNotStartedOrClosed() && this.startTime + 5000 > System.currentTimeMillis()) {
@@ -105,14 +101,14 @@ public class WebServer extends WebSocketServer {
         Player player = this.playerManager.getOrCreatePlayer(conn, handshakeUsername);
         player.setVersion(handshake.getFieldValue("version"));
 
-        serverHandler.sendPacket(conn, new BanMessagePacketI());
         serverHandler.sendPacket(conn, new PacketId57());
         serverHandler.sendPacket(conn, new HostFilePacket());
         serverHandler.sendPacket(conn, new EmoteGive());
+		serverHandler.sendPacket(conn, new WSPacketCosmeticGive());
+		
         updateTags();
-        WebServer.getInstance().getServerHandler().sendPacket(conn, new SendChatMessagfe(CC.AQUA.getCode() + "Hello " + handshakeUsername + "\n" + CC.LIGHT_PURPLE.getCode() + "Rank: " + player.getRank().getName()));
+        WebServer.getInstance().getServerHandler().sendPacket(conn, new SendChatMessagfe(CC.AQUA.getCode() + "Welcome to Shrunkie's Lunar fork"));
         for(Player online : PlayerManager.getPlayerMap().values()) {
-            WebServer.getInstance().getServerHandler().sendPacket(online.getConn(), new SendChatMessagfe("§aPlayer > §c" + handshakeUsername + "§e joined."));
             if(!server.equalsIgnoreCase("")) {
                 getServerHandler().sendPacket(online.getConn(), new CBPacketServerUpdate(player.getPlayerId().toString(), server));
             }
@@ -128,9 +124,6 @@ public class WebServer extends WebSocketServer {
         if (conn.getAttachment() != null) {
 
             Player player = PlayerManager.getPlayerMap().get(conn.getAttachment());
-            for(Player user :PlayerManager.getPlayerMap().values()) {
-                serverHandler.sendPacket(user.getConn(), new SendChatMessagfe("§aPlayere >§c" + player.getUsername() + "§e left."));
-            }
             player.setLogOffTime(System.currentTimeMillis());
 
             for (PlayerFriend friend : player.getFriends()) {
@@ -148,13 +141,6 @@ public class WebServer extends WebSocketServer {
         //   WebServer.getInstance().getServerHandler().sendPacket(conn, new WSPacketCosmeticGive(playerId, LunarLogoColors.TELLINQ.getColor()));
         for(Player user : PlayerManager.getPlayerMap().values()) {
             for (Player online : PlayerManager.getPlayerMap().values()) {
-                getLogger().info("Setting " + user.getUsername() +
-                        " Rank Info (Rank: " + user.getRank().name() +
-                        " Color: " + user.getRank().getColor() + ") For "
-                        + online.getUsername());
-              /*  if(user.getRank().equals(Rank.RAINBOW))
-                    WebServer.getInstance().getServerHandler().sendPacket(online.getConn(), new WSPacketCosmeticGive(user.getPlayerId(), RainbowHelper.randomTagColor().getColor()));
-                else*/
                     WebServer.getInstance().getServerHandler().sendPacket(online.getConn(), new WSPacketCosmeticGive(user.getPlayerId(), user.getRank().getColor()));
             }
         }

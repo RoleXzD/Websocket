@@ -961,3 +961,6 @@
 1087,1.0,cosmetics/cloaks/megapvpnightsky.png,MegaPvP Night Sky,cape,true
 1088,1.0,cosmetics/cloaks/boomerpond.png,Boomer Pond,cape,true
 1089,1.0,cosmetics/bandannas/versglitchedbandanna.png,Vers Glitched Bandanna,hat,true
+1090,1.0,cosmetics/cloaks/b0mbiesbear.png,B0MBIES Bears,cape,true
+1091,1.0,cosmetics/cloaks/b0mbiesbear.png,B0MBIES Bears,cape,true
+1092,1.0,cosmetics/cloaks/mantle.png,Mantle Test Cape,cape,false

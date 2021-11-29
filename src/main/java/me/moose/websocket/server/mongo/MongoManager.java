@@ -15,11 +15,11 @@ public class MongoManager {
 
     public MongoManager() {
         MongoClientURI uri = new MongoClientURI(
-                "mongodb://GodUser:mh2xDsMQEpKfvzkG@cluster0-shard-00-00.au0ai.mongodb.net:27017,cluster0-shard-00-01.au0ai.mongodb.net:27017,cluster0-shard-00-02.au0ai.mongodb.net:27017/admin?ssl=true&replicaSet=atlas-bmrp0p-shard-0&authSource=admin&retryWrites=true&w=majority");
+                "mongodb://up85zlxo4vkcjgds3b6g:ufObMRlY3FmClmvurmFb@b5oatvvxiw7emcn-mongodb.services.clever-cloud.com:27017/b5oatvvxiw7emcn");
         this.client =new MongoClient(uri);
 
         try {
-            this.database = this.client.getDB("CBWSDev");
+            this.database = this.client.getDB("b5oatvvxiw7emcn");
             this.profileCollection = this.database.getCollection("profiles");
             WebServer.getInstance().getLogger().info("Loaded mongo successfully.");
         } catch (Exception ex) {

@@ -110,7 +110,7 @@ public class Player {
         PlayerFriendManager.sendAllFriendRequestToPlayer(this);
         PlayerFriendManager.updateFriendForOthers(this);
         PlayerFriendManager.recacheFriendList(this);
-        handler.sendPacket(conn, new CBPacketFriendListUpdate(true, true, onlineFriends, offlineFriends));
+        handler.sendPacket(conn, new CBPacketFriendListUpdate(false, true, onlineFriends, offlineFriends));
         for(Player online : PlayerManager.getPlayerMap().values()) {
             if(online != this)
                 handler.sendPacket(conn, new WSPacketCosmeticGive(online.getPlayerId()));
@@ -127,7 +127,7 @@ public class Player {
         } else if(username.equalsIgnoreCase("Moose1301")) {
             this.rank = Rank.MOOSE;
         } else
-           this.rank = Rank.OWNER;
+           this.rank = Rank.USER;
         getLogger().info("Setting " + username + " Rank to " + rank.getName());
 
     }
